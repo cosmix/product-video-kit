@@ -685,7 +685,7 @@ file and the README section that describes it.
 | `motion/`                | `lib/` (`gfx`, `design`, `logo`, `ease`, `encode`, `scene`, `ui`, `selftest`), `render.py` with `--selftest`, `render_all.sh`                                                                                                                                 | `scenes/<name>.py` (one per scene, defining `SCENE`), `scenes.txt` (what `render_all.sh` renders) ([Motion graphics](#motion-graphics))                                                                                                                                                                                                                                                             |
 | `fixtures/web/`          | `webcap/`: `director` (deterministic frame stepping), `browser`, `capture`, `probe`, `verify`, `world` (scripted clock), `server` (serving helpers, live preview), `agent_session` (a scripted coding-agent terminal), `ansi`, `project` (loads `product.py`) | `product.py`: `World`, `build_app`, `CLIPS`, plus your fixture data ([Web capture](#web-capture))                                                                                                                                                                                                                                                                                                   |
 | `fixtures/tui/`          | `src/tuicap/`: `render` (pyte + skia terminal renderer), `design`, `glyphs`, `palette`, `capture` (pty recording, synthetic CLI shots), `tmux_clip` (isolated tmux), `clips` (the `tuicap` command, `--selftest`)                                             | `product.py`: `CLIPS`, optional `prepare`, `STILL_T`, `TRUECOLOR`, plus fixture files ([TUI capture](#tui-capture))                                                                                                                                                                                                                                                                                 |
-| `edit/`                  | `editkit/` (`compositor`, `gpu`, `hw`, `decode`, `scene`, `ease`, `shaders/`, `cards`, `art`, `design`, `assets`, `shots`, `credit_data`, `project`); `render.py`, `mix.py`, `words.py`, `subs.py`, `credits.py`, `bg_test.py` (the self-test)                | `edl.py`: `END`, `build()`, optional `BROLL_CLIPS`, `BUSY`; optional `credits.json` ([The edit](#the-edit))                                                                                                                                                                                                                                                                                         |
+| `edit/`                  | `editkit/` (`compositor`, `gpu`, `hw`, `decode`, `scene`, `ease`, `shaders/`, `cards`, `art`, `design`, `assets`, `shots`, `credit_data`, `project`); `render.py`, `mix.py`, `words.py`, `subs.py`, `credits.py`, `bg_test.py` (the self-test)                | `edl.py`: `END`, `build()`, optional `BROLL_CLIPS`, `BUSY`, `FPS`; optional `credits.json` ([The edit](#the-edit))                                                                                                                                                                                                                                                                                  |
 | `broll/`                 | `CREDITS.md` (the format for CC BY clips)                                                                                                                                                                                                                     | `gen/shots.json` (prompts), a `CREDITS.md` section per CC BY clip ([B-roll](#b-roll))                                                                                                                                                                                                                                                                                                               |
 
 Folders the project creates as it goes: `narration/vN/` and `narration/final/`, `captures/web/`,
@@ -1490,7 +1490,7 @@ uv run words.py            # faster-whisper word timings -> build/words.json (re
 uv run mix.py              # narration chain + ducked music + sound design -> out/mix.wav (-14 LUFS)
 uv run subs.py             # out/intro.srt (none without narration)
 uv run credits.py          # out/CREDITS.txt
-uv run render.py --preview                 # 540p30, no grain, DOF or motion blur -> out/preview.mp4
+uv run render.py --preview                 # 540p at up to 30 fps, no grain, DOF or motion blur -> out/preview.mp4
 uv run render.py --range 14 30             # a time range only (any mode)
 uv run render.py --contact --every 2       # contact sheets
 uv run render.py --frames 0 25.8 166.5     # single frames -> build/frames/ (--full-frames for full quality)
@@ -1501,8 +1501,9 @@ uv run render.py --fast                    # full quality with the fast encoder 
 **`edl.py` is the edit as data**: which source, which in-point (by manifest mark or by spoken
 word), which camera move, which transition. The project writes it; `editkit/project.py` loads it
 for `render.py`, `mix.py` and `credits.py`. It defines `END` (the last frame, in seconds) and
-`build() -> Timeline`, and optionally `BROLL_CLIPS` (b-roll names the cut uses, for the credits)
-and `BUSY` (scene keys where the mix ducks the melody further). A skeleton:
+`build() -> Timeline`, and optionally `BROLL_CLIPS` (b-roll names the cut uses, for the credits),
+`BUSY` (scene keys where the mix ducks the melody further) and `FPS` (the master's frame rate,
+default 60; `--preview` renders at most 30). A skeleton:
 
 ```python
 from editkit import cards
@@ -2083,7 +2084,7 @@ Also check:
 
 ## Encoding
 
-**Target format**: 1920x1080 at 60 fps, H.264 High (yuv420p, BT.709, tv range), AAC 48 kHz
+**Target format**: 1920x1080 at 60 fps (another rate: set `FPS` in `edl.py`), H.264 High (yuv420p, BT.709, tv range), AAC 48 kHz
 stereo, -14 LUFS integrated with true peak at most -1 dBTP, faststart. Frame 0 is a designed
 image; the video ends on a fade to pure black (Y=16).
 
@@ -2110,7 +2111,8 @@ ffmpeg -v error -y -f rawvideo -pix_fmt rgb24 -s 1920x1080 -r 60 -i - \
 ### The share copy
 
 For social media and messaging, a second encode makes a smaller copy of the master. It keeps
-1920x1080, drops the frame rate from 60 to 30 fps (the `fps=30` filter takes every other frame),
+1920x1080, drops the frame rate from 60 to 30 fps (the `fps=30` filter takes every other frame;
+leave the filter out for a master at 30 fps or less),
 and uses H.264 High Profile, Level 4.1, 8-bit 4:2:0 video with AAC-LC stereo audio in an MP4
 container, which Apple devices play. `-crf 21` sets visual quality rather than a fixed bitrate;
 `+faststart` moves the MP4 index to the front so web playback starts promptly; `-n` refuses to

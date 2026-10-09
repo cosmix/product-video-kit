@@ -1,13 +1,16 @@
 """Render the edit.
 
   uv run render.py                          full quality -> out/intro.mp4 (muxes out/mix.wav)
-  uv run render.py --preview                540p30, no grain/DOF/motion blur -> out/preview.mp4
+  uv run render.py --preview                540p at min(30, FPS), no grain/DOF/motion blur -> out/preview.mp4
   uv run render.py --range 20 34            any mode, a time range only
   uv run render.py --contact [--every 2]    contact sheet (one frame every N s) -> out/contact*.png
   uv run render.py --frames 12.5 40         single frames -> build/frames/*.png
+
+The frame rate is edl.py's FPS (default 60).
 """
 
 import argparse
+import dataclasses
 import subprocess
 import sys
 import time
@@ -131,13 +134,14 @@ def main() -> None:
     OUT.mkdir(exist_ok=True)
     if not (a.frames or a.contact or a.allow_placeholders):
         require_real_assets()
-    q = PREVIEW if a.preview else Quality()
+    fps = int(getattr(edl(), "FPS", 60))
+    q = dataclasses.replace(PREVIEW, fps=min(30, fps)) if a.preview else Quality(fps=fps)
     total = edl().END
     start, end = a.range if a.range else (0.0, total)
 
     if a.frames:
-        fq = Quality() if a.full_frames else Quality(res=(1920, 1080), fps=60, grain=0.0, dof=True,
-                                                     motion_blur=False, decode_scale=0.5)
+        fq = Quality(fps=fps) if a.full_frames else Quality(res=(1920, 1080), fps=fps, grain=0.0, dof=True,
+                                                            motion_blur=False, decode_scale=0.5)
         d = HERE / "build" / "frames"
         d.mkdir(parents=True, exist_ok=True)
         for t, im in zip(a.frames, render_frames(fq, a.frames)):
@@ -145,7 +149,7 @@ def main() -> None:
             im.save(p)
             print(p)
     elif a.contact:
-        cq = Quality(res=(960, 540), fps=60, grain=0.0, dof=True, motion_blur=False, decode_scale=0.5)
+        cq = Quality(res=(960, 540), fps=fps, grain=0.0, dof=True, motion_blur=False, decode_scale=0.5)
         for p in contact(cq, start, end, a.every):
             print(p)
     else:
