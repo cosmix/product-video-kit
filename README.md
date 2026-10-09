@@ -524,17 +524,18 @@ is for.
    interview in `CLAUDE.md` asks). The others are out of scope: no workstream, no brief, no questions about them.
 5. **Ask only the questions whose answers change the plan.** Typically: how to make the music
    (compose with real samples, or a local AI model with a non-commercial licence) if there is
-   music, the output format (1080p60), and the narrator's character if there is narration. Decide
-   everything else and report it.
+   music, the output format (1080p60), and the narrator's character and tone of voice if there is
+   narration (asked before any voice is rendered). Decide everything else and report it.
 
 ### Phase 1: the timeline first
 
 Every workstream is timed to `narration/timeline.json`, so it comes first. Write the script as
 short sections, one per scene.
 
-- **With narration** the voice is the clock: audition voices, calibrate the energy with the human,
-  record two or three takes per line, judge them against the text, process the chosen takes
-  uniformly, and build the timeline.
+- **With narration** the voice is the clock: ask the human what tone of voice they want, render
+  variants in that tone for the human to choose from, record two or three takes per line in the
+  chosen voice and tone, judge them against the text, process the chosen takes uniformly, and
+  build the timeline.
 - **Without narration** the lead writes `sections.json` with each section's on-screen text
   (titles, captions, card text) and, where the script or storyboard fixes one, a `duration`. The
   timeline estimates the other sections' lengths from the reading time of their text and marks
@@ -626,10 +627,10 @@ downstream agent the new absolute windows.
 2. Run the brand skill: `BRAND.md` and `brand/` in, `design.json` and the HANDBOOK "Brand"
    section out.
 3. Confirm which of narration, music and b-roll the video has. Ask the human the two or three
-   questions that change the plan (music approach, format, voice), plus the brand skill's open
-   questions.
-4. Write the script as short sections. With narration: audition voices, calibrate energy, record
-   takes, judge them. Without: give each section its on-screen text or a duration.
+   questions that change the plan (music approach, format, narrator and tone of voice), plus the
+   brand skill's open questions.
+4. Write the script as short sections. With narration: ask the tone, let the human choose among
+   voice variants, record takes in the chosen voice, judge them. Without: give each section its on-screen text or a duration.
 5. Build `timeline.json`. From here on it is the only clock.
 6. Write a shared spec: design system, fixture story, deliverable conventions, manifest marks.
 7. Spawn one agent per workstream, each with exclusive ownership and a complete brief.
@@ -832,11 +833,20 @@ voices that fit it, and write style directions in its words.
 re-recorded alone. `edit/subs.py` reads these files for the subtitles, so they hold exactly what
 is spoken. Delete or mark stale leftover scripts.
 
-**Audition voices** on the same two lines: render 3-4 voices and let the human choose. The lead
-cannot hear, so it asks the [listening judge](#the-listening-judge) about each take (perceived
-age, warmth, pacing, artifacts) and to catch misreads.
+**Ask for the tone first.** Before rendering any voice, ask the human what tone of voice they
+want: warm and confident, upbeat and quick, calm and authoritative, dry and matter-of-fact. Offer
+`BRAND.md`, "Voice and tone" as a starting point, but let the human confirm or change it. Record
+the answer in `NOTES.md`.
 
-**Calibrate the energy** with the human, and expect to overshoot both ways. "Warm and
+**Audition voices** in that tone on the same two lines: render 3-4 variants (different voices, or
+style wordings of the tone) and let the human choose. The lead does not pick the voice or the tone
+unless the human explicitly tells it to choose; record that permission in `NOTES.md`. The lead
+cannot hear, so it asks the [listening judge](#the-listening-judge) about each variant (perceived
+age, warmth, pacing, artifacts) and to catch misreads, and re-renders a broken variant before the
+human hears it. The judge describes; the human chooses.
+
+**Calibrate the energy** with the human, each round a set of variants for the human to choose
+from, and expect to overshoot both ways. "Warm and
 contemplative, speaking slowly" reads as bored; "energetic, speaking with conviction" as too
 eager; "warm and engaged, natural conversational pace, quietly confident" lands in the middle.
 Never use "hushed", whispering, breathy or overly dramatic directions, or "slowly" or
@@ -844,9 +854,10 @@ Never use "hushed", whispering, breathy or overly dramatic directions, or "slowl
 small (`, firm`, `, reflective`, `, lightly wry`, `, relaxed`, `, hopeful`,
 `, a touch of gravitas`). Give the judge a target (energy 5-6 of 10).
 
-**Record and judge takes.** The TTS model occasionally speaks stage directions (`<short pause>`
-read aloud), drops a word, or adds vocal fry. Render two or three takes per changed line into a
-new `vN/` folder and have the judge list word differences and pick one:
+**Record and judge takes.** Only after the human has chosen the voice and tone. The TTS model
+occasionally speaks stage directions (`<short pause>` read aloud), drops a word, or adds vocal
+fry. Render two or three takes per changed line, in exactly the chosen voice and style, into a new
+`vN/` folder and have the judge list word differences and pick the most accurate one:
 
 ```bash
 cd narration
@@ -2211,6 +2222,7 @@ Lets the next agent pick the project up cold. Paths are relative to the project 
 | --------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Brief     | The lead redirected the composer toward the wrong genre, misreading a music reference the human gave                            | Ask what a reference means to this person, or offer short excerpts early                               |
 | Narration | A hushed, then a bored, then an eager narrator                                                                                  | Audition a few directions on the same lines and let the human pick; keep style directions short        |
+| Narration | The lead chose a tone itself and rendered several takes in it before asking the human                                           | Ask the human what tone of voice they want first; render variants for the human to choose from         |
 | Narration | TTS read `<short pause>` aloud, dropped words, added vocal fry                                                                  | Render 2-3 takes and judge each against the expected text                                              |
 | Narration | A sentence spliced into an approved take was audible                                                                            | Use one take whole                                                                                     |
 | Narration | A re-take of an early line would have shifted every later scene                                                                 | Give later sections a `pin` in `sections.json`                                                         |

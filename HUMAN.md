@@ -102,7 +102,9 @@ Claude checks every piece itself before it shows you anything, using still frame
 measurements and, with a Gemini key, an audio listener. You then get something to look at:
 
 - a **script** to read and approve first, short sections one per scene;
-- **voice takes** to listen to, if the video has narration;
+- if the video has narration, first a question about the **tone of voice** you want, then
+  **voice variants** in that tone to listen to and choose from. Claude picks for you only if you
+  tell it to;
 - **previews**: a small, fast render of the whole video or of a range, in `edit/out/preview.mp4`,
   and stills of scenes Claude points you to;
 - the **final render** only after you approve the preview.

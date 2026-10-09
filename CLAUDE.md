@@ -41,9 +41,10 @@ changes the plan and decide the rest, reporting it (README "Phase 0: kickoff").
   media.
 - **Narration, music, b-roll**: each optional, any combination or none. A choice not made is out
   of scope: no role, no brief, no questions about it. If narration: the narrator's character and
-  voice, and that a Gemini key is needed. If music: genre and feel, and how to make it (compose
-  with real sample libraries, or a local AI model with a non-commercial licence). If b-roll: the
-  kind of shots, generated with Gemini Omni.
+  the tone of voice they want (warm and confident, upbeat, calm and authoritative, ...), and that
+  a Gemini key is needed. Ask the tone before rendering any voice. If music: genre and feel, and
+  how to make it (compose with real sample libraries, or a local AI model with a non-commercial
+  licence). If b-roll: the kind of shots, generated with Gemini Omni.
 - **Tone and taste**: references, music they like, things to avoid, anything already decided.
 - **Deliverables**: the master, the share copy, subtitles (only with narration), credits, any
   other files.
@@ -125,6 +126,10 @@ particular), then the README sections for its role before starting:
   correction there before briefing anyone; its "Rejected styles" list binds every workstream.
 - `edit/ISSUES.md` holds the editor's open problems: one bullet per issue, the asset and what is
   wrong in bold, then what the edit needs and who was asked. Under "Open" and "Resolved".
+- The human chooses the narrator's tone and voice. Ask what tone of voice they want before
+  rendering anything, then render variants in that tone for them to choose from. Choose yourself
+  only when the human explicitly tells you to, and record that in `NOTES.md`. The listening judge
+  screens takes for misreads; it never picks the tone or the voice.
 - B-roll, when the video has it, is generated with Gemini Omni only (`tools/genvideo.py`), never
   Veo.
 - The lead reviews every output before the human sees it: contact sheets, stills and measurements
