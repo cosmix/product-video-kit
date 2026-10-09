@@ -126,8 +126,9 @@ In the project folder, under `edit/out/`:
 - `edit/out/intro.srt`: subtitles, when the video has narration.
 
 Claude also tells you the paths when it finishes. The project folder also holds the script,
-`NOTES.md` (every decision), `HANDBOOK.md` and the code that renders everything, so a later session
-can re-render or change the video.
+`NOTES.md` (every decision), `HANDBOOK.md`, `COSTS.md` (the estimated spend on narration and
+b-roll, when the video has them) and the code that renders everything, so a later session can
+re-render or change the video.
 
 ## Coming back later
 

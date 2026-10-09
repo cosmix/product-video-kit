@@ -13,6 +13,9 @@ Usage:
 SCRIPT is a text file (or '-' for stdin) read as a verbatim transcript:
 inline tags such as <short pause> or <laugh> are performed, not spoken.
 Requires GEMINI_API_KEY (or GOOGLE_API_KEY) in the environment.
+
+Prints the call's token counts. Inside a product-video-kit project it also logs
+them to the project's usage.jsonl through tools/usage_log.py, for tools/costs.py.
 """
 
 import argparse
@@ -110,7 +113,7 @@ def output_path(script: str, output: str | None) -> Path:
     return Path(script).with_suffix(".wav")
 
 
-def synthesize(model: str, text: str, voice: str, style: str) -> bytes:
+def synthesize(model: str, text: str, voice: str, style: str):
     content: dict[str, object] = {"type": "text", "text": text}
     if style:
         content["annotations"] = [{"type": "speech_metadata", "style": style}]
@@ -121,10 +124,29 @@ def synthesize(model: str, text: str, voice: str, style: str) -> bytes:
         response_format={"type": "audio"},
         generation_config={"speech_config": [{"voice": voice}]},
     )
-    audio = base64.b64decode(interaction.output_audio.data)
-    if audio[:4] != b"RIFF":
-        sys.exit("error: response is not a WAV (missing RIFF header)")
-    return audio
+    return interaction
+
+
+def kit_tools() -> Path | None:
+    """The tools/ folder of the video-kit project this skill is installed in, if any."""
+    for parent in Path(__file__).absolute().parents:
+        if (parent / "narration" / "build_timeline.py").exists():
+            return parent / "tools"
+    return None
+
+
+def report_usage(model: str, usage, out: Path) -> None:
+    tools = kit_tools()
+    if tools is None:
+        tokens = usage.model_dump(mode="json", exclude_none=True) if usage else "no usage returned"
+        print(f"usage: {tokens}")
+        return
+    sys.path.insert(0, str(tools))
+    import usage_log
+
+    normalised = usage_log.from_interaction(usage)
+    usage_log.log("tts", model, normalised, output=str(out.absolute()))
+    print(usage_log.summary(normalised))
 
 
 def main() -> None:
@@ -138,7 +160,11 @@ def main() -> None:
     voice = resolve_voice(args.voice)
     text = read_script(args.script)
     out = output_path(args.script, args.output)
-    audio = synthesize(args.model, text, voice, args.style)
+    interaction = synthesize(args.model, text, voice, args.style)
+    report_usage(args.model, interaction.usage, out)
+    audio = base64.b64decode(interaction.output_audio.data)
+    if audio[:4] != b"RIFF":
+        sys.exit("error: response is not a WAV (missing RIFF header)")
     out.write_bytes(audio)
     print(f"{out} ({len(audio):,} bytes, voice {voice})")
 

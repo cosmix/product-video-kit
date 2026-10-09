@@ -79,6 +79,7 @@ pitfalls a finished video ran into. Each renderer has a self-test that runs with
     - [`NOTES.md`: the decision log](#notesmd-the-decision-log)
     - [`edit/ISSUES.md`: the editor's issue log](#editissuesmd-the-editors-issue-log)
     - [`HANDBOOK.md`: the project's own handbook](#handbookmd-the-projects-own-handbook)
+    - [`COSTS.md`: the cost estimate](#costsmd-the-cost-estimate)
   - [Mistakes and pitfalls](#mistakes-and-pitfalls)
   - [Snippets](#snippets)
   - [Licences and credits](#licences-and-credits)
@@ -440,16 +441,16 @@ reviews every output, and decides. The specialists are agent-team teammates
 (agent teams are on in `.claude/settings.json`), each with a name (so the lead and the others can message it) and exclusive ownership
 of its folders:
 
-| Role                | Tier                                                   | Owns                                                                                                             | Job                                                                 |
-| ------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| lead (main session) | Opus                                                   | `narration/`, `tools/`, `NOTES.md`, `HANDBOOK.md`, `BRAND.md`, `brand/`, `design.json` (through the brand skill) | script, narration, timeline, shared spec, briefs, review, decisions |
-| composer            | Fable (an Opus composer had two scores rejected first) | `music/`                                                                                                         | composition and rendering                                           |
-| motion designer     | Fable                                                  | `motion/`, minus any scene handed to a second designer                                                           | motion-graphics scenes                                              |
-| scene designer      | Fable                                                  | one scene file and its outputs                                                                                   | a scene the human asked to have rebuilt from scratch                |
-| web capture         | Opus                                                   | `fixtures/web/`, `captures/web/`                                                                                 | mock server and browser capture of the web UI                       |
-| TUI capture         | Opus                                                   | `fixtures/tui/`, `captures/tui/`                                                                                 | terminal and CLI captures                                           |
-| b-roll              | Sonnet (or the lead)                                   | `broll/`                                                                                                         | generating shots, contact sheets, normalising picks                 |
-| editor              | Opus                                                   | `edit/`                                                                                                          | compositor, edit decision list, mix, subtitles, credits, masters    |
+| Role                | Tier                                                   | Owns                                                                                                                                       | Job                                                                 |
+| ------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| lead (main session) | Opus                                                   | `narration/`, `tools/`, `NOTES.md`, `HANDBOOK.md`, `rates.json`, `COSTS.md`, `BRAND.md`, `brand/`, `design.json` (through the brand skill) | script, narration, timeline, shared spec, briefs, review, decisions |
+| composer            | Fable (an Opus composer had two scores rejected first) | `music/`                                                                                                                                   | composition and rendering                                           |
+| motion designer     | Fable                                                  | `motion/`, minus any scene handed to a second designer                                                                                     | motion-graphics scenes                                              |
+| scene designer      | Fable                                                  | one scene file and its outputs                                                                                                             | a scene the human asked to have rebuilt from scratch                |
+| web capture         | Opus                                                   | `fixtures/web/`, `captures/web/`                                                                                                           | mock server and browser capture of the web UI                       |
+| TUI capture         | Opus                                                   | `fixtures/tui/`, `captures/tui/`                                                                                                           | terminal and CLI captures                                           |
+| b-roll              | Sonnet (or the lead)                                   | `broll/`                                                                                                                                   | generating shots, contact sheets, normalising picks                 |
+| editor              | Opus                                                   | `edit/`                                                                                                                                    | compositor, edit decision list, mix, subtitles, credits, masters    |
 
 Only the workstreams the human chose exist: the composer only with music, b-roll only with
 b-roll, and the lead's narration work (script recording, takes, the judge) only with narration.
@@ -628,7 +629,7 @@ downstream agent the new absolute windows.
    section out.
 3. Confirm which of narration, music and b-roll the video has. Ask the human the two or three
    questions that change the plan (music approach, format, narrator and tone of voice), plus the
-   brand skill's open questions.
+   brand skill's open questions. With narration or b-roll, write `rates.json`.
 4. Write the script as short sections. With narration: ask the tone, let the human choose among
    voice variants, record takes in the chosen voice, judge them. Without: give each section its on-screen text or a duration.
 5. Build `timeline.json`. From here on it is the only clock.
@@ -672,20 +673,20 @@ The engine column ships with the kit and works for any product as it is. The pro
 what the team writes; each entry point that needs a project file stops with a message naming the
 file and the README section that describes it.
 
-| Folder                   | Engine (in the kit)                                                                                                                                                                                                                                           | Files the project writes                                                                                                                                                                                                                                                                               |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| project root             | none                                                                                                                                                                                                                                                          | `BRAND.md` (brand guidelines, the source of truth for look, voice and sound), `brand/` (`logo/`, `fonts/`, `palette/`, `reference/`), `design.json` (generated by the brand skill) ([Brand](#brand), [Design system](#design-system)); `NOTES.md`, `HANDBOOK.md` ([Project records](#project-records)) |
-| `tools/`                 | `listen.py` (Gemini listens to or watches media and answers questions), `genvideo.py` (Gemini Omni b-roll), `fonts.py` (finds the files for fonts that `design.json` names by family)                                                                         | none                                                                                                                                                                                                                                                                                                   |
-| `claude-skills/`         | `narration/` (Gemini TTS: `SKILL.md`, `tts.py`), `brand/` (`BRAND.md` to `design.json`: `SKILL.md`, `BRAND.template.md`, `check.py`); `install.sh` and `setup.sh` copy each to `.claude/skills/<name>/`                                                       | none                                                                                                                                                                                                                                                                                                   |
-| `install.sh`, `setup.sh` | copy the kit into a project; install and check dependencies                                                                                                                                                                                                   | none                                                                                                                                                                                                                                                                                                   |
-| `CLAUDE.md`              | project instructions every agent session loads; `install.sh` puts it in the project root                                                                                                                                                                      | none                                                                                                                                                                                                                                                                                                   |
-| `narration/`             | `process.sh` (trim ends, cap pauses at 0.45 s, tempo +4 %), `build_timeline.py`                                                                                                                                                                               | `NN_name.txt` scripts, `sections.json` (order, delivery, timing), `sources.json` (chosen takes); generated: `vN/`, `final/`, `timeline.json` ([Narration](#narration))                                                                                                                                 |
-| `music/`                 | `scorekit/` (`library`, `sampler`, `synth`, `instruments`, `percussion`, `drums`, `parts`, `theory`, `score`, `timing`, `mix`, `qc`), `render.py` with `--selftest`; `CREDITS.md` lists the sample libraries                                                  | `arrangement.py`: `compose(seed) -> Score` ([Music](#music))                                                                                                                                                                                                                                           |
-| `motion/`                | `lib/` (`gfx`, `design`, `logo`, `ease`, `encode`, `scene`, `ui`, `selftest`), `render.py` with `--selftest`, `render_all.sh`                                                                                                                                 | `scenes/<name>.py` (one per scene, defining `SCENE`), `scenes.txt` (what `render_all.sh` renders) ([Motion graphics](#motion-graphics))                                                                                                                                                                |
-| `fixtures/web/`          | `webcap/`: `director` (deterministic frame stepping), `browser`, `capture`, `probe`, `verify`, `world` (scripted clock), `server` (serving helpers, live preview), `agent_session` (a scripted coding-agent terminal), `ansi`, `project` (loads `product.py`) | `product.py`: `World`, `build_app`, `CLIPS`, plus your fixture data ([Web capture](#web-capture))                                                                                                                                                                                                      |
-| `fixtures/tui/`          | `src/tuicap/`: `render` (pyte + skia terminal renderer), `design`, `glyphs`, `palette`, `capture` (pty recording, synthetic CLI shots), `tmux_clip` (isolated tmux), `clips` (the `tuicap` command, `--selftest`)                                             | `product.py`: `CLIPS`, optional `prepare`, `STILL_T`, `TRUECOLOR`, plus fixture files ([TUI capture](#tui-capture))                                                                                                                                                                                    |
-| `edit/`                  | `editkit/` (`compositor`, `gpu`, `hw`, `decode`, `scene`, `ease`, `shaders/`, `cards`, `art`, `design`, `assets`, `shots`, `credit_data`, `project`); `render.py`, `mix.py`, `words.py`, `subs.py`, `credits.py`, `bg_test.py` (the self-test)                | `edl.py`: `END`, `build()`, optional `BROLL_CLIPS`, `BUSY`; optional `credits.json` ([The edit](#the-edit))                                                                                                                                                                                            |
-| `broll/`                 | `CREDITS.md` (the format for CC BY clips)                                                                                                                                                                                                                     | `gen/shots.json` (prompts), a `CREDITS.md` section per CC BY clip ([B-roll](#b-roll))                                                                                                                                                                                                                  |
+| Folder                   | Engine (in the kit)                                                                                                                                                                                                                                           | Files the project writes                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| project root             | none                                                                                                                                                                                                                                                          | `BRAND.md` (brand guidelines, the source of truth for look, voice and sound), `brand/` (`logo/`, `fonts/`, `palette/`, `reference/`), `design.json` (generated by the brand skill) ([Brand](#brand), [Design system](#design-system)); `NOTES.md`, `HANDBOOK.md`, `rates.json`, `COSTS.md` (generated from it and the calls the scripts log to `usage.jsonl`) ([Project records](#project-records)) |
+| `tools/`                 | `listen.py` (Gemini listens to or watches media and answers questions), `genvideo.py` (Gemini Omni b-roll), `fonts.py` (finds the files for fonts that `design.json` names by family), `usage_log.py` (logs each paid call), `costs.py` (writes `COSTS.md`)   | none                                                                                                                                                                                                                                                                                                                                                                                                |
+| `claude-skills/`         | `narration/` (Gemini TTS: `SKILL.md`, `tts.py`), `brand/` (`BRAND.md` to `design.json`: `SKILL.md`, `BRAND.template.md`, `check.py`); `install.sh` and `setup.sh` copy each to `.claude/skills/<name>/`                                                       | none                                                                                                                                                                                                                                                                                                                                                                                                |
+| `install.sh`, `setup.sh` | copy the kit into a project; install and check dependencies                                                                                                                                                                                                   | none                                                                                                                                                                                                                                                                                                                                                                                                |
+| `CLAUDE.md`              | project instructions every agent session loads; `install.sh` puts it in the project root                                                                                                                                                                      | none                                                                                                                                                                                                                                                                                                                                                                                                |
+| `narration/`             | `process.sh` (trim ends, cap pauses at 0.45 s, tempo +4 %), `build_timeline.py`                                                                                                                                                                               | `NN_name.txt` scripts, `sections.json` (order, delivery, timing), `sources.json` (chosen takes); generated: `vN/`, `final/`, `timeline.json` ([Narration](#narration))                                                                                                                                                                                                                              |
+| `music/`                 | `scorekit/` (`library`, `sampler`, `synth`, `instruments`, `percussion`, `drums`, `parts`, `theory`, `score`, `timing`, `mix`, `qc`), `render.py` with `--selftest`; `CREDITS.md` lists the sample libraries                                                  | `arrangement.py`: `compose(seed) -> Score` ([Music](#music))                                                                                                                                                                                                                                                                                                                                        |
+| `motion/`                | `lib/` (`gfx`, `design`, `logo`, `ease`, `encode`, `scene`, `ui`, `selftest`), `render.py` with `--selftest`, `render_all.sh`                                                                                                                                 | `scenes/<name>.py` (one per scene, defining `SCENE`), `scenes.txt` (what `render_all.sh` renders) ([Motion graphics](#motion-graphics))                                                                                                                                                                                                                                                             |
+| `fixtures/web/`          | `webcap/`: `director` (deterministic frame stepping), `browser`, `capture`, `probe`, `verify`, `world` (scripted clock), `server` (serving helpers, live preview), `agent_session` (a scripted coding-agent terminal), `ansi`, `project` (loads `product.py`) | `product.py`: `World`, `build_app`, `CLIPS`, plus your fixture data ([Web capture](#web-capture))                                                                                                                                                                                                                                                                                                   |
+| `fixtures/tui/`          | `src/tuicap/`: `render` (pyte + skia terminal renderer), `design`, `glyphs`, `palette`, `capture` (pty recording, synthetic CLI shots), `tmux_clip` (isolated tmux), `clips` (the `tuicap` command, `--selftest`)                                             | `product.py`: `CLIPS`, optional `prepare`, `STILL_T`, `TRUECOLOR`, plus fixture files ([TUI capture](#tui-capture))                                                                                                                                                                                                                                                                                 |
+| `edit/`                  | `editkit/` (`compositor`, `gpu`, `hw`, `decode`, `scene`, `ease`, `shaders/`, `cards`, `art`, `design`, `assets`, `shots`, `credit_data`, `project`); `render.py`, `mix.py`, `words.py`, `subs.py`, `credits.py`, `bg_test.py` (the self-test)                | `edl.py`: `END`, `build()`, optional `BROLL_CLIPS`, `BUSY`; optional `credits.json` ([The edit](#the-edit))                                                                                                                                                                                                                                                                                         |
+| `broll/`                 | `CREDITS.md` (the format for CC BY clips)                                                                                                                                                                                                                     | `gen/shots.json` (prompts), a `CREDITS.md` section per CC BY clip ([B-roll](#b-roll))                                                                                                                                                                                                                                                                                                               |
 
 Folders the project creates as it goes: `narration/vN/` and `narration/final/`, `captures/web/`,
 `captures/tui/` (clips, stills, manifests), `broll/gen/omni/` and `broll/candidates/`, every
@@ -812,6 +813,8 @@ uv run $SKILL/tts.py --list-voices
 
 - Flags: `--voice` (prebuilt name or a `voicekey_...` id; default `Kore`), `--style` (one
   sustained delivery direction for the file), `-o`, `--model`. One narrator per file.
+- Each call prints its token counts and, in a project, logs them to `usage.jsonl` for the
+  [cost estimate](#costsmd-the-cost-estimate).
 - Age, gender and accent come from the voice choice, never from `--style`. `SKILL.md` lists 30
   voices with their traits; for explainers try `Charon`, `Sadaltager`, `Iapetus`, for product
   demos `Puck`, `Achird`.
@@ -867,7 +870,9 @@ uv run ../tools/listen.py --model gemini-3.5-flash \
   "Expected text: ... For each file: word differences, stage directions read aloud, mispronunciations, energy 1-10 (target 5-6). Final line: PICK <a|b>" vN/NN_name_a.wav vN/NN_name_b.wav
 ```
 
-Budget TTS calls: batch auditions, and enable billing before you start.
+Budget TTS calls: batch auditions, and enable billing before you start. After each batch of TTS
+and judge calls, run `uv run tools/costs.py` from the project root to update
+[`COSTS.md`](#costsmd-the-cost-estimate).
 
 **Install the chosen take.** Point `sources.json` at it, then process every take the same way and
 rebuild the timeline:
@@ -1463,6 +1468,9 @@ uv run tools/genvideo.py [--only <shot id>]   # from the project root; needs GEM
   them in `edl.py`'s `BROLL_CLIPS`; the edit grades them (30 % saturation, 50 % brightness worked)
   so they sit under graphics.
 - The lead checks every contact sheet: an agent's "no logos" claim once missed two branded clips.
+- Every Omni attempt is billed, retries and failed shots included. `genvideo.py` logs each
+  attempt's token counts and clip length to `usage.jsonl`; the lead runs `tools/costs.py` after
+  each batch ([`COSTS.md`](#costsmd-the-cost-estimate)).
 - Generated footage needs no attribution.
 
 Creative Commons stock is a last resort, and reviewers often reject it as off-message. If you use
@@ -2136,7 +2144,7 @@ A full decode of the share copy completed without errors.
 
 ## Project records
 
-A video project keeps three files beside the pipeline. The kit ships none of them; the lead
+A video project keeps four files beside the pipeline. The kit ships none of them; the lead
 creates them.
 
 ### `NOTES.md`: the decision log
@@ -2215,6 +2223,49 @@ Lets the next agent pick the project up cold. Paths are relative to the project 
 | ...       |       |                  |                          | one row per scene: capture clips, motion scenes, insets and the marks they sync to                                   |
 | close     | `<t>` | `<start>-<end>`  | tagline, licence line    | the last capture dissolves to the end card                                                                           |
 | credits   | `<t>` | n/a              | n/a                      | one subtle centred line on the background; fade to black; pure black hold                                            |
+
+### `COSTS.md`: the cost estimate
+
+A running estimate of what the paid Gemini calls cost: TTS for narration, the listening judge,
+and Omni for b-roll. Every one of them is billed, auditions, rejected takes, re-takes, retries and
+failed shots included, so every one is counted.
+
+The API returns token counts with each response, never a price. The scripts that call it log
+those counts, and `tools/costs.py` prices them:
+
+- **`usage.jsonl`** (project root): one JSON line per call, appended by `tts.py`, `tools/listen.py`
+  and `tools/genvideo.py` through `tools/usage_log.py`. Each line holds the time, the script, the
+  model, the tokens in and out by modality and any thinking tokens, plus the output file (TTS), the
+  files judged (the judge), or the shot, whether a video came back, and the clip length (b-roll).
+  Each call also prints its counts. Nobody edits this file; it is a record.
+- **`rates.json`** (project root, the lead's): the prices from
+  <https://ai.google.dev/gemini-api/docs/pricing>, with the date they were read. Token rates are
+  USD per million tokens, either one number for every modality or a table by modality (`text`,
+  `audio`, `video`, `image`); thinking tokens are priced as text output. A model priced by the
+  second of video takes `per_second` instead. `null` marks a rate not filled in yet.
+- **`COSTS.md`** (project root): generated by `uv run tools/costs.py` from the project root. A
+  total per workstream, then one row per day, workstream and model with calls, failed calls,
+  tokens, video seconds and the estimate. Any model or modality without a rate counts as $0 and is
+  listed under "Unpriced", and the script prints it: add the rate and run it again. Never edit
+  `COSTS.md` by hand.
+
+```json
+{
+  "source": "https://ai.google.dev/gemini-api/docs/pricing",
+  "read": "<date>",
+  "models": {
+    "gemini-3.8-flash-tts": { "input": null, "output": { "audio": null } },
+    "gemini-3.5-flash": { "input": { "text": null, "audio": null }, "output": null },
+    "gemini-omni-1.1-flash": { "per_second": null }
+  }
+}
+```
+
+The lead writes `rates.json` at kickoff when the video has narration or b-roll, with an entry for
+every model the project calls (the judge's model too), and re-reads the pricing page when a
+session resumes after a long gap. It runs `tools/costs.py` after every batch of calls and gives the
+human the total with each preview and before a large batch (a new shot list, a full re-record),
+with an estimate for that batch from the rows of a similar earlier one.
 
 ## Mistakes and pitfalls
 

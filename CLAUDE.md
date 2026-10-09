@@ -55,8 +55,10 @@ Narration, generated b-roll and the listening judge need `GEMINI_API_KEY`. When 
 `./setup.sh --check` shows the key as not set, tell the human to create a key at
 https://aistudio.google.com/apikey (billing on: the free tier allows 10 voice requests a day), add
 `export GEMINI_API_KEY=<key>` to their shell profile, then quit, open a new terminal and start
-`claude` in the project folder again. Never ask them to paste the key into the chat. After the restart, read `NOTES.md` if it
-exists and resume. Without a key, review audio with ffmpeg measurements.
+`claude` in the project folder again. Never ask them to paste the key into the chat. Tell them
+that narration and b-roll are billed per request and that you keep a running estimate in
+`COSTS.md`. After the restart, read `NOTES.md` if it exists and resume. Without a key, review
+audio with ffmpeg measurements.
 
 ### d. The brand
 
@@ -69,12 +71,14 @@ exists and resume. Without a key, review audio with ffmpeg measurements.
 ### e. Start the workflow
 
 Write `NOTES.md` with the decisions so far (README "Project records", "`NOTES.md`: the decision
-log"), then begin README "The workflow" at Phase 1. Learn the product from its docs first.
+log") and, when the video has narration or b-roll, `rates.json` with the current prices (README
+"`COSTS.md`: the cost estimate"), then begin README "The workflow" at Phase 1. Learn the product
+from its docs first.
 
 ## Later sessions (`NOTES.md` exists)
 
-Read `NOTES.md`, `edit/ISSUES.md` and `narration/timeline.json`, and `HANDBOOK.md` if present, and
-resume where they leave off. Run `./setup.sh --check` once. Ask the human where things stand only
+Read `NOTES.md`, `edit/ISSUES.md` and `narration/timeline.json`, and `HANDBOOK.md` and `COSTS.md`
+if present, and resume where they leave off. Run `./setup.sh --check` once. Ask the human where things stand only
 if the records do not say.
 
 ## Read first
@@ -130,6 +134,11 @@ particular), then the README sections for its role before starting:
   rendering anything, then render variants in that tone for them to choose from. Choose yourself
   only when the human explicitly tells you to, and record that in `NOTES.md`. The listening judge
   screens takes for misreads; it never picks the tone or the voice.
+- `COSTS.md` is the running estimate of what narration and b-roll cost, rejected and failed calls
+  included. `tts.py`, `tools/listen.py` and `tools/genvideo.py` log each call's token counts to
+  `usage.jsonl`; `uv run tools/costs.py` prices them with the lead's `rates.json` and rewrites
+  `COSTS.md`, which is never hand-edited. Run it after every batch of calls and give the human the
+  total with each preview and before a large batch.
 - B-roll, when the video has it, is generated with Gemini Omni only (`tools/genvideo.py`), never
   Veo.
 - The lead reviews every output before the human sees it: contact sheets, stills and measurements
@@ -144,7 +153,7 @@ particular), then the README sections for its role before starting:
 ## Skills
 
 - `narration` in `.claude/skills/narration/` (`SKILL.md`, `tts.py`): Gemini TTS for a narrated
-  video; needs `GEMINI_API_KEY`.
+  video; needs `GEMINI_API_KEY`. Each call logs its token counts to `usage.jsonl`.
 - `brand` in `.claude/skills/brand/` (`SKILL.md`, `BRAND.template.md`, `check.py`): writes
   `BRAND.md` with the human, generates `design.json` and the HANDBOOK "Brand" section. Check the
   result with `uv run .claude/skills/brand/check.py`.

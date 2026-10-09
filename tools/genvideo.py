@@ -5,12 +5,20 @@
 
 usage: uv run tools/genvideo.py [--only <id>]
 Outputs broll/gen/omni/<id>.mp4 and <id>.json (skips ids already present).
+Logs every attempt's token counts and clip length to usage.jsonl (tools/usage_log.py).
 """
-import argparse, base64, json, os, time
+import argparse
+import base64
+import json
+import os
+import subprocess
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from google import genai
+
+import usage_log
 
 ROOT = Path(__file__).resolve().parent.parent / "broll" / "gen"
 MODEL = "gemini-omni-1.1-flash"
@@ -26,16 +34,30 @@ def slim(obj):
     return "<blob>" if isinstance(obj, str) and len(obj) > 2000 else obj
 
 
-def omni(client, prompt, out):
+def seconds(path):
+    """Clip length from ffprobe, or None when it cannot be read."""
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
+                        str(path)], capture_output=True, text=True)
+    try:
+        return round(float(r.stdout), 2)
+    except ValueError:
+        return None
+
+
+def omni(client, prompt, out, sid):
     r = client.interactions.create(model=MODEL, input=prompt, response_modalities=["video"],
                                    response_format=OMNI_FMT)
     vid = r.output_video
+    usage = usage_log.from_interaction(r.usage)
     if vid is None or not (vid.data or vid.uri):
+        usage_log.log("genvideo", MODEL, usage, shot=sid, ok=False)
         raise RuntimeError(f"no video returned: {slim(r.model_dump(mode='json', exclude_none=True))}")
     if vid.data:
         Path(out).write_bytes(vid.data if isinstance(vid.data, bytes) else base64.b64decode(vid.data))
     else:
+        usage_log.log("genvideo", MODEL, usage, shot=sid, ok=False)
         raise RuntimeError(f"uri delivery not handled: {vid.uri}")
+    usage_log.log("genvideo", MODEL, usage, shot=sid, ok=True, seconds=seconds(out))
     return OMNI_FMT, {"interaction": slim(r.model_dump(mode="json", exclude_none=True))}
 
 
@@ -50,7 +72,7 @@ def run(client, shot):
         try:
             tmp = d / f".{shot['id']}.tmp.mp4"
             t0 = time.time()
-            cfg, meta = omni(client, prompt, str(tmp))
+            cfg, meta = omni(client, prompt, str(tmp), shot["id"])
             os.replace(tmp, final)
             info = {"model": MODEL, "prompt": prompt, "config": cfg, "seconds_taken": round(time.time() - t0, 1),
                     "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S"), "attempts": attempt, **meta}

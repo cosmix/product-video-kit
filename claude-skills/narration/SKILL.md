@@ -36,6 +36,8 @@ uv run $SKILL/tts.py --list-voices
 
 Play the result to check it (`aplay out.wav` on Linux, `afplay out.wav` on macOS, or `ffplay -autoexit out.wav`), and tell the user the file path.
 
+Each call prints its token counts. When the skill is installed in a product-video-kit project, it also appends them to the project's `usage.jsonl` (through `tools/usage_log.py`), which `tools/costs.py` prices into `COSTS.md`.
+
 ## Choosing a voice
 
 Pick the voice for the persona. Age, gender and accent come from the voice, never from `--style`.

@@ -5,11 +5,15 @@
 """Ask a Gemini model to listen to (or watch) media files and answer a question.
 
 Usage: uv run tools/listen.py "question" file1 [file2 ...] [--model NAME]
+Logs the call's token counts to usage.jsonl (tools/usage_log.py) and prints them to stderr.
 """
 import argparse
+import sys
 import time
 
 from google import genai
+
+import usage_log
 
 p = argparse.ArgumentParser()
 p.add_argument("question")
@@ -28,4 +32,7 @@ for f in a.files:
     parts.append(up)
 parts.append(a.question)
 resp = client.models.generate_content(model=a.model, contents=parts)
+usage = usage_log.from_generate(resp.usage_metadata)
+usage_log.log("listen", a.model, usage, files=a.files)
+print(usage_log.summary(usage), file=sys.stderr)
 print(resp.text)
