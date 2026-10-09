@@ -1,0 +1,20 @@
+[project]
+name = "tui-capture"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "ptyprocess>=0.7.0",
+    "pyte>=0.8.2",
+    "skia-python>=144.0.post2",
+    "wcwidth>=0.9.1",
+]
+
+[project.scripts]
+tuicap = "tuicap.clips:main"
+
+[build-system]
+requires = ["uv_build>=0.8,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "tuicap"
