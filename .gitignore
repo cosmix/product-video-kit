@@ -1,0 +1,26 @@
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# render output and intermediate files
+out/
+build/
+
+# downloaded sample libraries (setup.sh fetches them)
+music/samples/
+
+# secrets
+.env
+
+# editor and OS files
+.DS_Store
+.vscode/
+.idea/
+
+# machine-specific font resolution (tools/fonts.py)
+brand/fonts/resolved.json
+brand/fonts/.local/
