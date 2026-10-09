@@ -137,12 +137,15 @@ def _folder_offset(files: list[tuple[Path, int]], key: str) -> int:
     return offset
 
 
-def fine_tune_cents(path: Path, midi: float) -> float:
+def fine_tune_cents(path: Path, midi: float, sustained: bool = False) -> float:
     """Cents the sample sounds away from `midi`, read off the spectral peak
     nearest the expected fundamental and its 2nd and 3rd partials. Returns 0
-    when no clear partial sits within a quarter tone (unpitched or noisy)."""
+    when no clear partial sits within a quarter tone (unpitched or noisy).
+    A sustained sample is read on its held body (0.5-2.0 s), because a bowed or
+    blown attack scoops up to the pitch; anything else on the attack (0.04-0.45 s)."""
     x = load(path).mean(axis=1)
-    a, b = int(0.04 * SR), int(0.45 * SR)
+    a, b = (0.5, 2.0) if sustained and len(x) > int(0.6 * SR) else (0.04, 0.45)
+    a, b = int(a * SR), int(b * SR)
     frame = x[a:b] if len(x) > b else x[a:]
     n = 1 << 18
     spec = np.abs(np.fft.rfft(frame * np.hanning(len(frame)), n))
@@ -164,23 +167,25 @@ def fine_tune_cents(path: Path, midi: float) -> float:
     return float(sum(w * c for w, c in found) / sum(w for w, _ in found))
 
 
-def _tuned(parsed: list[tuple[Path, int, int, int]], offset: int) -> dict[str, float]:
-    """Per-file fine tuning (cents) for a folder, cached in build/."""
+def _tuned(parsed: list[tuple[Path, int, int, int]], offset: int, sustained: bool) -> dict[str, float]:
+    """Per-file fine tuning (cents) for a folder, cached in build/ (sustained keys end in "@sus")."""
     cache = json.loads(TUNE_CACHE.read_text()) if TUNE_CACHE.exists() else {}
+    tag = "@sus" if sustained else ""
     dirty = False
     for p, note, _, _ in parsed:
-        key = str(p.relative_to(SAMPLES))
+        key = str(p.relative_to(SAMPLES)) + tag
         if key not in cache:
-            cache[key] = round(fine_tune_cents(p, note + offset), 1)
+            cache[key] = round(fine_tune_cents(p, note + offset, sustained), 1)
             dirty = True
     if dirty:
         TUNE_CACHE.parent.mkdir(parents=True, exist_ok=True)
         TUNE_CACHE.write_text(json.dumps(cache, indent=1, sort_keys=True))
-    return {str(p.relative_to(SAMPLES)): cache[str(p.relative_to(SAMPLES))] for p, *_ in parsed}
+    return {str(p.relative_to(SAMPLES)): cache[str(p.relative_to(SAMPLES)) + tag] for p, *_ in parsed}
 
 
-def vsco(folder: str, pattern: str, layers: list[str]) -> list[Zone]:
-    """Index a VSCO folder. `pattern` is a regex with groups note, layer, rr?"""
+def vsco(folder: str, pattern: str, layers: list[str], sustained: bool = False) -> list[Zone]:
+    """Index a VSCO folder. `pattern` is a regex with groups note, layer, rr?
+    `sustained` tunes each sample on its held body instead of its attack."""
     base = VSCO / folder
     rx = re.compile(pattern)
     parsed = []
@@ -198,7 +203,7 @@ def vsco(folder: str, pattern: str, layers: list[str]) -> list[Zone]:
         hint = "" if base.exists() else " (sample libraries not installed: run ./setup.sh without --no-samples)"
         raise FileNotFoundError(f"no samples matched in {base}{hint}")
     offset = _folder_offset([(p, n) for p, n, _, _ in parsed], folder)
-    cents = _tuned(parsed, offset)
+    cents = _tuned(parsed, offset, sustained)
     n_layers = len(layers)
     zones = []
     for p, note, layer, rr in parsed:

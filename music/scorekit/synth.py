@@ -81,11 +81,14 @@ def sub(midi: float, dur: float, vel: int) -> np.ndarray:
 
 
 def sub_drop(vel: int) -> np.ndarray:
-    """Downbeat impact: a sine falling 90 -> 32 Hz over 0.7 s."""
+    """Downbeat impact: a sine falling 90 -> 32 Hz over 0.7 s, faded out over its last 0.3 s
+    (the decay alone stops at about -27 dB, which clicks)."""
     n = int(1.1 * SR)
     t = np.arange(n) / SR
     f = 32 + 58 * np.exp(-t / 0.22)
     x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.35) * (1 - np.exp(-t / 0.01))
+    tail = int(0.3 * SR)
+    x[-tail:] *= np.linspace(1.0, 0.0, tail)
     x *= 0.5 * (0.4 + 0.6 * vel / 127)
     return np.stack([x, x], axis=1)
 

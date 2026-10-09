@@ -48,7 +48,7 @@ class Instrument:
             layer = exact[0].layer
         else:
             target = vel / 127.0 * (max(layers) + 1)
-            layer = min(layers, key=lambda l: abs(l + 0.5 - target))
+            layer = min(layers, key=lambda k: abs(k + 0.5 - target))
         return [(self._rr(near, layer, rr), 1.0)]
 
     @staticmethod
@@ -57,8 +57,8 @@ class Instrument:
         return cands[rr % len(cands)]
 
 
-def _v(folder: str, pattern: str, layers: list[str]) -> list[Zone]:
-    return lib.vsco(folder, pattern, layers)
+def _v(folder: str, pattern: str, layers: list[str], sustained: bool = False) -> list[Zone]:
+    return lib.vsco(folder, pattern, layers, sustained)
 
 
 def _strings() -> list[Instrument]:
@@ -92,13 +92,13 @@ def _strings() -> list[Instrument]:
                    _v(s + "Solo Contrabass/Pizz", rf"BKCtbss_Pizz_{NOTE}_(?P<layer>v\d)_rr(?P<rr>\d)\.wav", ["v1", "v3"]),
                    release=0.35, pan=0.1, width=0.3, veltrack=0.6, lowpass=5000),
         Instrument("vln_sus", "strings",
-                   _v(s + "Violin Section/susVib", rf"VlnEns_susVib_{NOTE}_(?P<layer>v\d)\.wav", ["v1", "v2"]),
+                   _v(s + "Violin Section/susVib", rf"VlnEns_susVib_{NOTE}_(?P<layer>v\d)\.wav", ["v1", "v2"], sustained=True),
                    pan=-0.4, width=0.6, **sus),
         Instrument("vla_sus", "strings",
-                   _v(s + "Viola Section/susvib", rf"ViolaEns_susvib_{NOTE}_(?P<layer>v\d)_\d\.wav", ["v1", "v2"]),
+                   _v(s + "Viola Section/susvib", rf"ViolaEns_susvib_{NOTE}_(?P<layer>v\d)_\d\.wav", ["v1", "v2"], sustained=True),
                    pan=0.15, width=0.5, **sus),
         Instrument("vc_sus", "strings",
-                   _v(s + "Cello Section/susvib", rf"susvib_{NOTE}_(?P<layer>v\d)_(?P<rr>\d)\.wav", ["v1", "v3"]),
+                   _v(s + "Cello Section/susvib", rf"susvib_{NOTE}_(?P<layer>v\d)_(?P<rr>\d)\.wav", ["v1", "v3"], sustained=True),
                    pan=0.4, width=0.5, **sus),
     ]
 
@@ -120,7 +120,7 @@ def _mallets_and_winds() -> list[Instrument]:
                    _v("Strings/Harp", rf"KSHarp_{NOTE}_\w+\.wav", ["v1"]),
                    release=1.5, pan=-0.5, width=0.6, veltrack=0.7, detune_cents=0.0, gain_db=4.0),
         Instrument("horn", "winds",
-                   _v("Brass/F Horn/sus", rf"MOHorn_sus_{NOTE}_(?P<layer>v\d)_1\.wav", ["v1", "v2", "v3"]),
+                   _v("Brass/F Horn/sus", rf"MOHorn_sus_{NOTE}_(?P<layer>v\d)_1\.wav", ["v1", "v2", "v3"], sustained=True),
                    kind="sustain", release=0.4, attack=0.05, pre_roll=0.04, pan=0.2,
                    width=0.4, veltrack=0.5, lowpass=5000, gain_db=-3.0, extra={"arc": (4.0, 3.0)}),
     ]
