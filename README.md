@@ -1629,8 +1629,10 @@ Credits are data, so the on-screen card and the video description (`out/CREDITS.
   none.
 - `edit/credits.json` (optional) holds the description's title line and any row the human asks
   for: `{"title": "<product>: introduction", "rows": [["Narration", "Gemini TTS (<voice>)"]]}`.
-- `credit_data.lines(BROLL_CLIPS)` gives the on-screen lines; `cards.credit_line(name, lines)`
-  draws them as a full-frame transparent card the EDL places as `image:<name>`.
+- `credit_data.lines(BROLL_CLIPS)` gives the on-screen lines; `cards.credit_line(name, lines, size=22)`
+  draws them as a full-frame transparent card the EDL places as `image:<name>`. `size` is the
+  text height in design px (the line pitch scales with it); raise it over a busy or colourful
+  ground, where 22 px is hard to read.
 
 Show only what a licence requires: CC BY samples or footage, and a typeface only if its licence
 asks for on-screen credit (most font licences, the SIL Open Font License among them, do not). No

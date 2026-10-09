@@ -12,7 +12,7 @@ from .assets import BUILD
 
 S = 2                      # drawing scale (design px -> image px)
 W, H = 1920, 1080
-PITCH = 34                 # line pitch, design px
+PITCH = 34                 # line pitch at the default 22 px size, design px
 
 
 def _write(name: str, canvas: Image.Image) -> str:
@@ -22,11 +22,13 @@ def _write(name: str, canvas: Image.Image) -> str:
     return f"image:{name}"
 
 
-def credit_line(name: str, lines: list[str]) -> str:
-    f = font(22 * S, 400)
+def credit_line(name: str, lines: list[str], size: float = 22) -> str:
+    """Centred credit lines at `size` design px; the line pitch scales with it."""
+    f = font(round(size * S), 400)
+    pitch = PITCH * size / 22
     canvas = Image.new("RGBA", (W * S, H * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(canvas)
-    y0 = H / 2 - (len(lines) - 1) * PITCH / 2
+    y0 = H / 2 - (len(lines) - 1) * pitch / 2
     for i, text in enumerate(lines):
-        d.text((W * S / 2, (y0 + i * PITCH) * S), text, font=f, fill=SECONDARY + (255,), anchor="mm")
+        d.text((W * S / 2, (y0 + i * pitch) * S), text, font=f, fill=SECONDARY + (255,), anchor="mm")
     return _write(name, canvas)
