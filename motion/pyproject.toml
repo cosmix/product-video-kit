@@ -1,0 +1,14 @@
+[project]
+name = "motion"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "glcontext<3.1 ; platform_machine == 'x86_64' and sys_platform == 'darwin'",
+    "glcontext>=3.1.0 ; platform_machine != 'x86_64' or sys_platform != 'darwin'",
+    "moderngl<5.13 ; platform_machine == 'x86_64' and sys_platform == 'darwin'",
+    "moderngl>=5.13.0 ; platform_machine != 'x86_64' or sys_platform != 'darwin'",
+    "numpy>=2.5.3",
+    "pillow>=12.3.0",
+    "skia-python>=144.0.post2",
+]
