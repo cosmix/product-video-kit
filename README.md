@@ -1559,7 +1559,10 @@ def build() -> Timeline:
   (`editkit/ease.py`). A `Segment` groups planes under a `Camera` (`aperture` for depth of field)
   and enters with a `Transition`: `kind` (`cut`, `dissolve`, `push`, `zoom`), `dur`,
   `direction` (where a push sends the outgoing scene) and `ease`. During a transition each
-  segment's group is drawn with a `GroupState` (`opacity`, `offset`, `zoom`). A
+  segment's group is drawn with a `GroupState` (`opacity`, `offset`, `zoom`). A segment lasts
+  until the next one has entered, unless it sets its own `end`: then it spans the segments after
+  it and stops at `end` (a cut; fade its planes with `fade_out`). List such a segment first, so
+  it draws under the others, for a ground layer that runs under every scene. A
   `Timeline(total, segments, fade, background_level)` carries the fade to black (0 to 1) and a
   brightness multiplier for the background; both can be `Track`s.
 - Scene windows come from `timeline.json`, word sync from `words.json`, capture in-points from

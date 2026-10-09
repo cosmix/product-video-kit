@@ -218,6 +218,7 @@ class Segment:
     layers: list
     camera: Camera = field(default_factory=Camera)
     trans: Transition = field(default_factory=Transition)
+    end: float | None = None    # its own end: it spans the segments after it (a continuous ground)
 
 
 @dataclass
@@ -263,10 +264,20 @@ class Timeline:
     background_level: object = 1.0                  # ground brightness multiplier
 
     def active_segments(self, t: float):
+        """(segment, next) pairs drawn at t, in list order. A segment ends when its next one has
+        entered; one with its own `end` stops there instead, has no next, and is skipped when
+        the others find theirs."""
+        chain = [s for s in self.segments if s.end is None]
+        following = {id(s): n for s, n in zip(chain, chain[1:] + [None])}
         out = []
-        for i, seg in enumerate(self.segments):
-            nxt = self.segments[i + 1] if i + 1 < len(self.segments) else None
-            end = self.total + 1 if nxt is None else nxt.start + (nxt.trans.dur if nxt.trans.kind != "cut" else 0)
+        for seg in self.segments:
+            nxt = following.get(id(seg))
+            if seg.end is not None:
+                end = seg.end
+            elif nxt is None:
+                end = self.total + 1
+            else:
+                end = nxt.start + (nxt.trans.dur if nxt.trans.kind != "cut" else 0)
             if seg.start <= t < end:
                 out.append((seg, nxt))
         return out
