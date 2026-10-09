@@ -1,0 +1,14 @@
+[project]
+name = "scorekit"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.3",
+    "pedalboard>=0.9.25",
+    "pyloudnorm>=0.2.0",
+    "scipy>=1.18.1",
+    "soundfile>=0.14.0",
+    "soxr>=1.1.0",
+]
