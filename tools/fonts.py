@@ -176,7 +176,8 @@ def materialize(p: Pick, family: str, source: str) -> Path:
     directory = LOCAL_DIR if source == "installed" else FONTS_DIR / dirname(family)
     ext = ".otf" if f.path.suffix.lower() == ".otf" else ".ttf"
     if "wght" in f.axes:
-        name = f"{re.sub(r'\W+', '', f.family)}-{p.weight}{'-Italic' if p.italic else ''}{ext}"
+        stem = re.sub(r"\W+", "", f.family)
+        name = f"{stem}-{p.weight}{'-Italic' if p.italic else ''}{ext}"
         return derived(f.path, directory / name, lambda out: make_instance(p, out))
     if f.path.suffix.lower() == ".ttc" and f.index:
         def extract(out):
